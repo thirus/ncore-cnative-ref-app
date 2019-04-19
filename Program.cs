@@ -7,6 +7,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Prometheus;
+using Prometheus.DotNetRuntime;
 
 namespace ReferenceApp
 {
@@ -14,6 +16,10 @@ namespace ReferenceApp
     {
         public static void Main(string[] args)
         {
+            // DotNetRuntimeStatsBuilder.Default().WithErrorHandler(e =>
+            //         {
+            //             Console.WriteLine(e.ToString());
+            //         }).StartCollecting();
             CreateWebHostBuilder(args).Build().Run();
         }
 
