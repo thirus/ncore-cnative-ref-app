@@ -3,7 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
-    <RootNamespace>reference_app</RootNamespace>
+    <RootNamespace>ReferencApp</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <CodeAnalysisRuleSet>ca.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>
