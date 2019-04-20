@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Prometheus;
 using Prometheus.DotNetRuntime;
 using Serilog;
+using Serilog.Events;
+using Serilog.Sinks.Elasticsearch;
 
 namespace ReferenceApp
 {
@@ -29,6 +31,11 @@ namespace ReferenceApp
             //             Console.WriteLine(e.ToString());
             //         }).StartCollecting();
             Log.Logger = new LoggerConfiguration()
+                .WriteTo.Elasticsearch().WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
+                        {
+                            MinimumLogEventLevel = LogEventLevel.Verbose,
+                            AutoRegisterTemplate = true,
+                        })
                 .ReadFrom.Configuration(Configuration)
                 .Enrich.FromLogContext()
                 .WriteTo.ColoredConsole()
