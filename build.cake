@@ -4,6 +4,7 @@
 //////////////////////////////////////////////////////////////////////
 
 var target = Argument("target", "Default");
+var tag = Argument("tag", "cake");
 var configuration = Argument("configuration", "Release");
 
 Information($"Running target {target} in configuration {configuration}");
@@ -13,7 +14,7 @@ Information($"Running target {target} in configuration {configuration}");
 //////////////////////////////////////////////////////////////////////
 
 // Define directories.
-var buildDir = Directory("./bin") + Directory(configuration);
+var distDirectory = Directory("./dist");
 
 //////////////////////////////////////////////////////////////////////
 // TASKS
@@ -22,7 +23,7 @@ var buildDir = Directory("./bin") + Directory(configuration);
 Task("Clean")
     .Does(() =>
     {
-        CleanDirectory(buildDir);
+        CleanDirectory(distDirectory);
     });
 
 Task("Restore")
@@ -38,7 +39,7 @@ Task("Build")
             new DotNetCoreBuildSettings()
             {
                 Configuration = configuration,
-                ArgumentCustomization = args => args.Append("--no-restore"),
+//                ArgumentCustomization = args => args.Append("--no-restore"),
             });
     });
 
@@ -60,6 +61,20 @@ Task("Test")
         }
     });
     
+Task("PublishService")
+  .Does(() =>
+  {
+      var settings = new DotNetCorePublishSettings
+      {
+          Configuration = configuration,
+          OutputDirectory = distDirectory,
+          ArgumentCustomization = args => args.Append("--no-restore"),
+          VersionSuffix = tag
+      };
+
+      DotNetCorePublish("./ReferenceApp.csproj", settings);
+  });
+
 //////////////////////////////////////////////////////////////////////
 // TASK TARGETS
 //////////////////////////////////////////////////////////////////////
@@ -69,6 +84,10 @@ Task("Default")
     .IsDependentOn("Restore")
     .IsDependentOn("Build")
     .IsDependentOn("Test");
+
+Task("Publish")
+    .IsDependentOn("Default")
+    .IsDependentOn("PublishService");
 
 //////////////////////////////////////////////////////////////////////
 // EXECUTION
