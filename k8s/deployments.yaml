@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: ref-app
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: ref-app
+    spec:
+      containers:
+      - name: app
+        image: ts00acrtest.azurecr.io/test/refapp:v1
+        ports:
+        - name: web
+          containerPort: 80
+      imagePullSecrets:
+        - name: "acrtest"

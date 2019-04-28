@@ -7,16 +7,21 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Prometheus;
-using Prometheus.DotNetRuntime;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
+using App.Metrics;
+using App.Metrics.AspNetCore;
+using App.Metrics.AspNetCore.Health;
+using App.Metrics.Formatters;
+using App.Metrics.Formatters.Prometheus;
 
 namespace ReferenceApp
 {
     public class Program
     {
+        public static IMetricsRoot Metrics { get; set; }
+
         public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -26,10 +31,6 @@ namespace ReferenceApp
 
         public static void Main(string[] args)
         {
-            // DotNetRuntimeStatsBuilder.Default().WithErrorHandler(e =>
-            //         {
-            //             Console.WriteLine(e.ToString());
-            //         }).StartCollecting();
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Elasticsearch().WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
                         {
@@ -52,10 +53,25 @@ namespace ReferenceApp
             }
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) {
+            Metrics = AppMetrics.CreateDefaultBuilder()
+                .OutputMetrics.AsPrometheusPlainText()
+                .Build();
+
+            return WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(Configuration)
                 .UseSerilog()
+                .UseHealth()
+                .ConfigureMetrics(Metrics)
+                .UseMetrics(options =>
+                        {
+                            options.EndpointOptions = endpointsOptions =>
+                            {
+                                endpointsOptions.MetricsEndpointOutputFormatter = Metrics.OutputMetricsFormatters.GetType<MetricsPrometheusTextOutputFormatter>();
+                            };
+                        })
+                .UseMetricsWebTracking()
                 .UseStartup<Startup>();
+        }
     }
 }

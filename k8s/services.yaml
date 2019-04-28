@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: ref-app
+  labels:
+    app: ref-app
+spec:
+  selector:
+    app: ref-app
+  ports:
+  - name: web
+    port: 80
